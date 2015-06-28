@@ -58,6 +58,8 @@ Target "Package" (fun _ ->
             Publish = false
             Files =
               [ (@"**\Topshelf.FSharp.*", Some "lib", None) ]
+            Dependencies =  // fallback - for all unspecified frameworks
+              [ "Topshelf", "3.1.3" ]
         })
         nuspec
 )
