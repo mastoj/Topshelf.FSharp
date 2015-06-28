@@ -1,24 +1,27 @@
 // include Fake lib
 #r @"packages/FAKE/tools/FakeLib.dll"
+open System
 open Fake
 open Fake.Testing
 open Fake.NuGetHelper
+open Fake.AssemblyInfoFile
+open Fake.Git
 
+let description = "Topshelf F# API"
 let projectName = "Topshelf.FSharp"
-
+let authors = ["Henrik Feldt"; "Tomas Jansson"]
 let buildDir = "./.build/"
 let deployDir = "./.deploy/"
 let testDir = "./.test/"
 let project = !! (sprintf "src/%s/*.fsproj" projectName)
 let nuspec = sprintf "%s%s.nuspec" buildDir projectName
 let packages = !! "./**/packages.config"
-
-printfn "%s" nuspec
+let versionCandidate = (environVar "version")
+let version = if versionCandidate = "" || versionCandidate = null then "0.0.0" else versionCandidate
 
 Target "Clean" (fun() ->
   CleanDirs [buildDir; deployDir; testDir]
 )
-
 
 Target "RestorePackages" (fun _ ->
   packages
@@ -26,18 +29,17 @@ Target "RestorePackages" (fun _ ->
 )
 
 Target "Build" (fun() ->
-//open Fake.AssemblyInfoFile
-
-//Target "BuildApp" (fun _ ->
-//    CreateCSharpAssemblyInfo "./src/Topshelf.FSharp/AssemblyInfo.cs"
-//        [Attribute.Title "Calculator Command line tool"
-//         Attribute.Description "Sample project for FAKE - F# MAKE"
-//         Attribute.Guid "43854298-65cd-4b69-a63d-2accb7c68cec"
-//         Attribute.Product "Calculator"
-//         Attribute.Version version
-//         Attribute.FileVersion version]
-
-//Attribute.Metadata("githash", commitHash)
+  let commitHash = Information.getCurrentHash()
+  trace "Updating AssemblyVersionInfo"
+  CreateFSharpAssemblyInfo "./src/Topshelf.FSharp/AssemblyVersionInfo.fs"
+      [Attribute.Title description
+       Attribute.Description description
+       Attribute.Guid "43854298-65cd-4b69-a63d-2accb7c68cec"
+       Attribute.Product projectName
+       Attribute.Version version
+       Attribute.FileVersion version
+       Attribute.Copyright (sprintf "(c) %i by %s" DateTime.Now.Year authors.[0])
+       Attribute.Metadata("githash", commitHash)]
 
   project
   |> MSBuildRelease buildDir "ResolveReferences;Build"
@@ -45,23 +47,19 @@ Target "Build" (fun() ->
 )
 
 Target "Package" (fun _ ->
-  let versionCandidate = (environVar "version")
-  let version = if versionCandidate = "" || versionCandidate = null then "0.0.0" else versionCandidate
   NuGet (fun p ->
         {p with
-            Authors = ["Henrik Feldt"; "Tomas Jansson"]
-            Project = "test.test"
+            Authors = authors
+            Project = projectName
             Description = "Topshelf F# API"
             OutputPath = deployDir
             WorkingDir = buildDir
             Version = version
             Publish = false
-            Files = [
-              (@"**\Topshelf.FSharp.*", Some "lib", None)
-            ]
-        //    References = [projectName + ".dll"]
+            Files =
+              [ (@"**\Topshelf.FSharp.*", Some "lib", None) ]
         })
-            nuspec
+        nuspec
 )
 
 "Clean"
