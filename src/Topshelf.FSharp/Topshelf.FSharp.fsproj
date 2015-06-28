@@ -52,6 +52,9 @@
   <ItemGroup>
     <Compile Include="AssemblyVersionInfo.fs" />
     <Compile Include="FSharpApi.fs" />
+    <None Include="Topshelf.FSharp.nuspec">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
