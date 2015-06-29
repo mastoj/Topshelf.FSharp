@@ -65,8 +65,12 @@ Target "Package" (fun _ ->
 )
 
 Target "GitTag" (fun _ ->
-  let gitResult = runGitCommand "" "tag"
-  printfn "Git result %A" gitResult
+  let (status, tags, _) = runGitCommand "" "tag"
+  let tagName = sprintf "v%s" version
+  if tags |> Seq.exists (fun t -> t = tagName) then
+    printfn "Tag already exist"
+  else
+    printfn "Git result %A" tagName
 )
 
 Target "PushNuget" (fun _ ->
