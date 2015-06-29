@@ -64,10 +64,24 @@ Target "Package" (fun _ ->
         nuspec
 )
 
+Target "GitTag" (fun _ ->
+  let gitResult = runGitCommand "" "tag"
+  printfn "Git result %A" gitResult
+)
+
+Target "PushNuget" (fun _ ->
+  trace "Package released"
+  NuGetPublish (fun p ->
+               {p with
+                   AccessKey = (environVar "NUGET_KEY")})
+)
+
 "Clean"
 ==> "RestorePackages"
 ==> "Build"
 ==> "Package"
+==> "GitTag"
+==> "PushNuget"
 
 // start build
-RunTargetOrDefault "Package"
+RunTargetOrDefault "GitTag"
