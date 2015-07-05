@@ -80,12 +80,15 @@ Target "PushNuget" (fun _ ->
                    AccessKey = (environVar "NUGET_KEY")})
 )
 
+Target "Default" (fun _ -> trace "Default target")
+
 "Clean"
 ==> "RestorePackages"
 ==> "Build"
+==> "Default"
 ==> "Package"
 ==> "GitTag"
 ==> "PushNuget"
 
 // start build
-RunTargetOrDefault "GitTag"
+RunTargetOrDefault "Default"
